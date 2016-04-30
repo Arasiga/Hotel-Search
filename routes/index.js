@@ -2,9 +2,9 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var router = express.Router();
 var request = require('request');
-var Sequelize = require('sequelize');
-var sequelize = new Sequlize('DMZ', 'alex', 'password')
-var pgp = require("pg-promise");
+// var Sequelize = require('sequelize');
+// var sequelize = new Sequlize('DMZ', 'alex', 'password')
+// var pgp = require("pg-promise");
 
 
 /* GET home page. */
