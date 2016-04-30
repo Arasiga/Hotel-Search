@@ -1,0 +1,35 @@
+extends layout
+
+block content
+  .row
+    .col-lg-12
+      h1(style="text-align: center;") Search for hotels
+  .row
+    .col-lg-12(style="display: inline;")
+      form#searchForm(action="searchHotels" method="post")
+        .form-group
+          label Enter City
+          input.form-control#city(type="text", required="true", name="city", list="api_datalist")
+          datalist#api_datalist
+        .form-group
+          label Check-In Date
+          input.form-control#checkIn(type="date", required="true" name="checkIn")
+        .form-group
+          label Check-Out Date
+          input.form-control#checkOut(type="date", required="true", name="checkOut")
+        .form-group
+          button.btn.btn-success.btn-lg(type="submit") Search!
+
+  #search_results
+    table.table
+      thead
+        tr
+          th Image
+          th Hotel Name
+          th#userRating User Rating
+          th#starRating Star Rating 
+          th#price Price
+        tbody
+
+
+list="json-datalist"
