@@ -1,5 +1,4 @@
 var express = require('express');
-var bodyParser = require('body-parser');
 var router = express.Router();
 
 /* GET users listing. */

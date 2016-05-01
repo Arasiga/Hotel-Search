@@ -1,11 +1,9 @@
 var express = require('express');
 var bodyParser = require('body-parser');
+var path = require('path');
 var router = express.Router();
 var request = require('request');
-// var Sequelize = require('sequelize');
-// var sequelize = new Sequlize('DMZ', 'alex', 'password')
-// var pgp = require("pg-promise");
-
+var models = require('../models/index');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -20,8 +18,57 @@ router.post('/searchHotels', function(req, res){
 
   var city = req.body.city;
   var checkIn = req.body.checkIn;
-  var checkOut = req.body.checkOut;
-  var ip = '10.16.231.218';
+  var checkOut = req.body.checkOut; 
+  var CheckIn_checkOut = checkIn + "-" + checkOut;
+  var current_dates_id = "";
+
+  models.checkdates.find({
+    where: {
+      dates: CheckIn_checkOut
+    }
+  }).then(function(checkdates){
+    if(checkdates){
+      console.log("exists");
+      console.log(checkdates.id);
+      current_dates_id = checkdates.id;
+
+      models.cities.find({
+        where: {
+          checkdatesID: current_dates_id
+        }
+      }).then(function(data){
+        if(data){
+          console.log("city with search query already exists");
+        }else{
+          models.cities.create({
+            city: city,
+            checkdatesID: checkdates.id
+          });
+        }
+      });
+    } else {
+      models.checkdates.create({
+        dates: CheckIn_checkOut 
+      }).then(function(checkdates) {
+        current_dates_id = checkdates.id;
+
+        models.cities.find({
+          where: {
+            checkdatesID: current_dates_id
+          }
+        }).then(function(data){
+          if(data){
+            console.log("city with search query already exists");
+          }else{
+            models.cities.create({
+              city: city,
+              checkdatesID: checkdates.id
+            });
+          }
+        });
+      });
+    }
+  });
 
   var data = APICall(city, checkIn, checkOut);
   console.log(data);
@@ -34,7 +81,6 @@ router.post('/searchHotels', function(req, res){
       res.send(error);
     }else {
 
-      // console.log(response.body);
       var body = JSON.parse(response.body);
       var resultsArray = body.results;
       var length = resultsArray.length;
@@ -76,6 +122,7 @@ router.post('/searchHotels', function(req, res){
       }
 
       var html = '';
+      var resultHotels = '';
 
       for(var x = 0; x < arrayOf_Hotel_Arrays.length; x++){
         if (arrayOf_Hotel_Arrays[x].length === 0){
@@ -89,6 +136,11 @@ router.post('/searchHotels', function(req, res){
             html += "<td class='starRating'>" + element.starRating + "</td>";
             html += "<td class='price'>" + element.lowestRate + "</td>";
             html += "<tr>";
+            resultHotels += element.image.large + ", ";
+            resultHotels += element.name + ", ";
+            resultHotels += element.guestRating + ", ";
+            resultHotels += element.starRating + ", ";
+            resultHotels += element.lowestRate + ".       ";
           })
         } else {
           var array_to_be_sorted = [];
@@ -104,9 +156,31 @@ router.post('/searchHotels', function(req, res){
             html += "<td>" + sortedArray[z].starRating + "</td>";
             html += "<td>" + sortedArray[z].lowestRate + "</td>";
             html += "<tr>";
+            resultHotels += sortedArray[z].image.large + ", ";
+            resultHotels += sortedArray[z].name + ", ";
+            resultHotels += sortedArray[z].guestRating + ", "; 
+            resultHotels += sortedArray[z].starRating + ", ";
+            resultHotels += sortedArray[z].lowestRate + ".      ";
           }
         }
     }
+
+    console.log(resultHotels);
+
+    models.cities.find({
+      where: {
+        city: city,
+        checkdatesID: current_dates_id 
+      }
+    }).then(function(data){
+      console.log("FOUND CITY");
+      console.log(data.id);
+      var id = data.id;
+      models.hotels.create({
+        hotels: resultHotels,
+        citiesID: id
+      });
+    });
 
     res.send(html);
 
